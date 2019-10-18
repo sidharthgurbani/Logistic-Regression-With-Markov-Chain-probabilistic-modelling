@@ -1,0 +1,92 @@
+# Create Training Data set and Labels
+
+import numpy as np
+import matplotlib.pyplot as plt
+import sklearn
+from sklearn.metrics import accuracy_score
+
+x11 = np.random.rand(400,1)
+x12 = 4*np.random.rand(400,1)
+
+x21 = 2*np.random.rand(400,1)
+x22 = 2*np.random.rand(400,1)
+
+x3 = np.ones((400,1))
+
+xD1 = np.hstack((x12,x11,x3)) # Dataset 1
+xD2 = np.hstack((x22,x11,x3)) # Dataset 2
+
+w1 = np.array([[1],[4],[-4]]) # weight to define label 1
+w2 = np.array([[1],[1],[-2]]) # weight to define label 2
+
+y1 = (np.sign(np.dot(xD1,w1))+1)/2 # label for dataset 1
+y2 = (np.sign(np.dot(xD2,w2))+1)/2 # label for dataset 2
+
+# Initializations and definitions
+
+def weightInitialization(num_features):
+    w = np.zeros((num_features,1))
+    return w
+
+def sigmoid_function(x):
+    result = 1/(1 + np.exp(-x))
+    return x
+
+def model_optimize(w, x, y):
+    n = x.shape[0]
+    
+    # Evaluating cost value
+    result = sigmoid_function(np.dot(x,w))
+    cost = (-1/m)*(np.sum((y*np.log(result) + (1-y)*np.log(1-result))))
+    
+    # Gradient calculation
+    dw = (1/n)*(np.dot(x.T,(result-y)))
+    return dw,cost
+
+def model_predict(w,x,y,learning_rate,num_iterations):
+    costs = []
+    for i in range(num_iterations):
+        
+        dw, cost = model_optimize(w,x,y)
+        
+        w = w - (learning_rate)*dw
+        
+        if (i%1000 == 0):
+            costs.append(cost)
+            print("Cost after iteration %i is : %f" % (i,cost))
+            
+    coeff = w
+    gradient = dw
+    
+    return w,dw,costs
+
+def predict(final_pred, m):
+    y_pred = np.zeros((m,1))
+    for i in range(final_pred.shape[0]):
+        if (final_pred[i][0] > 0.5):
+            y_pred[i][0] = 1
+    
+    return y_pred
+    
+
+num_features = xD1.shape[1]
+m = xD1.shape[0]
+print("number of features is %i" % num_features)
+
+w = weightInitialization(num_features)
+
+w, grad, costs = model_predict(w, xD1, y1, learning_rate=0.0001, num_iterations=23000)
+
+final_pred = sigmoid_function(np.dot(xD1,w))
+
+y_pred = predict(final_pred, m)
+
+print("weight vector final is", w)
+
+print("Training accuracy is", accuracy_score(y_pred, y1))
+
+plt.plot(costs)
+plt.ylabel("cost")
+plt.xlabel("number of iterations (per hundreds)")
+plt.title("cost vs number of iterations estimate")
+plt.show()
